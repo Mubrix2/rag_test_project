@@ -34,7 +34,6 @@ def run_app():
         if not query.strip():
             continue
 
-        # This is the line you asked about!
         # It sends a dictionary to the engine
         response = rag_chain.invoke({"input": query})
         
