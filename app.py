@@ -66,19 +66,17 @@ if prompt := st.chat_input("What is in my documents?"):
     # Generate AI Response
     with st.chat_message("assistant"):
         with st.spinner("Thinking..."):
-            response = st.session_state.rag_chain.invoke({"input": prompt})
-            answer = response["answer"]
+            # NEW for LangGraph:
+            initial_state = {"question": prompt}
+            output_state = st.session_state.rag_chain.invoke(initial_state)
+
+            answer = output_state["generation"]
             st.markdown(answer)
-            
-            # Show Sources in an expandable section
-            with st.expander("View Sources"):
-                sources = set()
-                for doc in response.get("context", []):
-                    fname = os.path.basename(doc.metadata.get("source", "Unknown"))
-                    page = doc.metadata.get("page", 0) + 1
-                    sources.add(f"Page {page} of {fname}")
-                for s in sources:
-                    st.write(f"- {s}")
+
+            with st.expander("Agentic Metadata"):
+                st.write(f"Documents Retrieved: {len(output_state['documents'])}")
+                for doc in output_state['documents']:
+                    st.write(f"- {doc.metadata.get('source')}")
 
     # Add assistant response to history
     st.session_state.messages.append({"role": "assistant", "content": answer})
