@@ -40,11 +40,28 @@ for message in st.session_state.messages:
         st.markdown(message["content"])
 
 # User Input
+# Inside your Chat Input section in app.py
 if prompt := st.chat_input("What is in my documents?"):
-    # Add user message to history
     st.session_state.messages.append({"role": "user", "content": prompt})
+    
     with st.chat_message("user"):
         st.markdown(prompt)
+
+    with st.chat_message("assistant"):
+        # Format the chat history for LangChain
+        # We convert our message list into a format the chain expects
+        chat_history = []
+        for m in st.session_state.messages[:-1]: # everything except the current prompt
+             chat_history.append((m["role"], m["content"]))
+
+        response = st.session_state.rag_chain.invoke({
+            "input": prompt,
+            "chat_history": chat_history # Passing the memory here!
+        })
+        
+        answer = response["answer"]
+        st.markdown(answer)
+        # ... (rest of your source tracking code)
 
     # Generate AI Response
     with st.chat_message("assistant"):
